@@ -49,6 +49,9 @@ extern bool unlock_indicator;
 /* List of pressed modifiers, or NULL if none are pressed. */
 extern char *modifier_string;
 
+/* Active keyboard layout, or NULL. */
+extern char *layout_string;
+
 /* A Cairo surface containing the specified image (-i), if any. */
 extern cairo_surface_t *img;
 
@@ -250,7 +253,22 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_close_path(ctx);
         }
 
-        if (auth_state == STATE_AUTH_WRONG && (modifier_string != NULL)) {
+        if (layout_string != NULL) {
+            cairo_text_extents_t extents;
+            double x, y;
+
+            cairo_set_font_size(ctx, 14.0);
+
+            cairo_text_extents(ctx, layout_string, &extents);
+            x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
+            y = BUTTON_CENTER - ((extents.height / 2) + extents.y_bearing) - 28.0;
+
+            cairo_move_to(ctx, x, y);
+            cairo_show_text(ctx, layout_string);
+            cairo_close_path(ctx);
+        }
+
+        if (modifier_string != NULL) {
             cairo_text_extents_t extents;
             double x, y;
 

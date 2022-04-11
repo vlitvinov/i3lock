@@ -72,6 +72,7 @@ static bool beep = false;
 bool debug_mode = false;
 bool unlock_indicator = true;
 char *modifier_string = NULL;
+char *layout_string = NULL;
 static bool dont_fork = false;
 struct ev_loop *main_loop;
 static struct ev_timer *clear_auth_wrong_timeout;
@@ -308,41 +309,6 @@ static void input_done(void) {
     if (debug_mode)
         fprintf(stderr, "Authentication failure\n");
 
-    /* Get state of Caps and Num lock modifiers, to be displayed in
-     * STATE_AUTH_WRONG state */
-    xkb_mod_index_t idx, num_mods;
-    const char *mod_name;
-
-    num_mods = xkb_keymap_num_mods(xkb_keymap);
-
-    for (idx = 0; idx < num_mods; idx++) {
-        if (!xkb_state_mod_index_is_active(xkb_state, idx, XKB_STATE_MODS_EFFECTIVE))
-            continue;
-
-        mod_name = xkb_keymap_mod_get_name(xkb_keymap, idx);
-        if (mod_name == NULL)
-            continue;
-
-        /* Replace certain xkb names with nicer, human-readable ones. */
-        if (strcmp(mod_name, XKB_MOD_NAME_CAPS) == 0)
-            mod_name = "Caps Lock";
-        else if (strcmp(mod_name, XKB_MOD_NAME_ALT) == 0)
-            mod_name = "Alt";
-        else if (strcmp(mod_name, XKB_MOD_NAME_NUM) == 0)
-            mod_name = "Num Lock";
-        else if (strcmp(mod_name, XKB_MOD_NAME_LOGO) == 0)
-            mod_name = "Super";
-
-        char *tmp;
-        if (modifier_string == NULL) {
-            if (asprintf(&tmp, "%s", mod_name) != -1)
-                modifier_string = tmp;
-        } else if (asprintf(&tmp, "%s, %s", modifier_string, mod_name) != -1) {
-            free(modifier_string);
-            modifier_string = tmp;
-        }
-    }
-
     auth_state = STATE_AUTH_WRONG;
     failed_attempts += 1;
     clear_input();
@@ -521,6 +487,69 @@ static void handle_key_press(xcb_key_press_event_t *event) {
     memcpy(password + input_position, buffer, n - 1);
     input_position += n - 1;
     DEBUG("current password = %.*s\n", input_position, password);
+
+    /* Get state of Caps and Num lock modifiers, to be displayed */
+    xkb_mod_index_t idx, num_mods;
+    const char *mod_name;
+
+    num_mods = xkb_keymap_num_mods(xkb_keymap);
+
+    /* Clear modifier string. */
+    free(modifier_string);
+    modifier_string = NULL;
+
+    for (idx = 0; idx < num_mods; idx++) {
+        if (!xkb_state_mod_index_is_active(xkb_state, idx, XKB_STATE_MODS_EFFECTIVE))
+            continue;
+
+        mod_name = xkb_keymap_mod_get_name(xkb_keymap, idx);
+        if (mod_name == NULL)
+            continue;
+
+        /* Replace certain xkb names with nicer, human-readable ones. */
+        if (strcmp(mod_name, XKB_MOD_NAME_CAPS) == 0)
+            mod_name = "Caps Lock";
+        else if (strcmp(mod_name, XKB_MOD_NAME_ALT) == 0)
+            mod_name = "Alt";
+        else if (strcmp(mod_name, XKB_MOD_NAME_NUM) == 0)
+            mod_name = "Num Lock";
+        else if (strcmp(mod_name, XKB_MOD_NAME_LOGO) == 0)
+            mod_name = "Super";
+
+        char *tmp;
+        if (modifier_string == NULL) {
+            if (asprintf(&tmp, "%s", mod_name) != -1)
+                modifier_string = tmp;
+        } else if (asprintf(&tmp, "%s, %s", modifier_string, mod_name) != -1) {
+            free(modifier_string);
+            modifier_string = tmp;
+        }
+    }
+
+    /* Get state of Keyboard layout, to be displayed */
+    xkb_layout_index_t lidx,num_layouts;
+    const char *layout_name;
+
+    num_layouts = xkb_keymap_num_layouts(xkb_keymap);
+
+    /* Clear layout string. */
+    free(layout_string);
+    layout_string = NULL;
+
+    for (lidx = 0; lidx < num_layouts; lidx++) {
+        if (!xkb_state_layout_index_is_active(xkb_state, lidx, XKB_STATE_LAYOUT_EFFECTIVE))
+            continue;
+
+        layout_name = xkb_keymap_layout_get_name(xkb_keymap, lidx);
+        if (layout_name == NULL) {
+            continue;
+	}
+
+        char *tmp;
+        if (asprintf(&tmp, "%s", layout_name) != -1)
+            layout_string = tmp;
+	break;
+    }
 
     if (unlock_indicator) {
         unlock_state = STATE_KEY_ACTIVE;
