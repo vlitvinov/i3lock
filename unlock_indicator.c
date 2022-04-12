@@ -153,18 +153,18 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         switch (auth_state) {
             case STATE_AUTH_VERIFY:
             case STATE_AUTH_LOCK:
-                cairo_set_source_rgba(ctx, 0, 114.0 / 255, 255.0 / 255, 0.75);
+                cairo_set_source_rgba(ctx, 133.0 / 255, 153.0 / 255, 0, 0.5);
                 break;
             case STATE_AUTH_WRONG:
             case STATE_I3LOCK_LOCK_FAILED:
-                cairo_set_source_rgba(ctx, 250.0 / 255, 0, 0, 0.75);
+                cairo_set_source_rgba(ctx, 220.0 / 255, 50.0 / 255, 47 / 255, 0.5);
                 break;
             default:
                 if (unlock_state == STATE_NOTHING_TO_DELETE) {
-                    cairo_set_source_rgba(ctx, 250.0 / 255, 0, 0, 0.75);
+                    cairo_set_source_rgba(ctx, 220.0 / 255, 50.0 / 255, 47 / 255, 0.5);
                     break;
                 }
-                cairo_set_source_rgba(ctx, 0, 0, 0, 0.75);
+                cairo_set_source_rgba(ctx, 0, 43.0 / 255, 54.0 / 255, 0.5);
                 break;
         }
         cairo_fill_preserve(ctx);
@@ -172,25 +172,25 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         switch (auth_state) {
             case STATE_AUTH_VERIFY:
             case STATE_AUTH_LOCK:
-                cairo_set_source_rgb(ctx, 51.0 / 255, 0, 250.0 / 255);
+                cairo_set_source_rgb(ctx, 133.0 / 255, 153.0 / 255, 0);
                 break;
             case STATE_AUTH_WRONG:
             case STATE_I3LOCK_LOCK_FAILED:
-                cairo_set_source_rgb(ctx, 125.0 / 255, 51.0 / 255, 0);
+                cairo_set_source_rgb(ctx, 220.0 / 255, 50.0 / 255, 47 / 255);
                 break;
             case STATE_AUTH_IDLE:
                 if (unlock_state == STATE_NOTHING_TO_DELETE) {
-                    cairo_set_source_rgb(ctx, 125.0 / 255, 51.0 / 255, 0);
+                    cairo_set_source_rgb(ctx, 220.0 / 255, 50.0 / 255, 47 / 255);
                     break;
                 }
 
-                cairo_set_source_rgb(ctx, 51.0 / 255, 125.0 / 255, 0);
+                cairo_set_source_rgb(ctx, 0, 43.0 / 255, 54.0 / 255);
                 break;
         }
         cairo_stroke(ctx);
 
         /* Draw an inner seperator line. */
-        cairo_set_source_rgb(ctx, 0, 0, 0);
+        cairo_set_source_rgb(ctx, 88.0 / 255, 110.0 / 255, 117.0 / 255);
         cairo_set_line_width(ctx, 2.0);
         cairo_arc(ctx,
                   BUTTON_CENTER /* x */,
@@ -207,15 +207,15 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         /* We don't want to show more than a 3-digit number. */
         char buf[4];
 
-        cairo_set_source_rgb(ctx, 0, 0, 0);
+        cairo_set_source_rgb(ctx, 133.0 / 255, 148.0 / 255, 150.0 / 255);
         cairo_select_font_face(ctx, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
         cairo_set_font_size(ctx, 28.0);
         switch (auth_state) {
             case STATE_AUTH_VERIFY:
-                text = "Verifying…";
+                text = "Verifying";
                 break;
             case STATE_AUTH_LOCK:
-                text = "Locking…";
+                text = "Locking";
                 break;
             case STATE_AUTH_WRONG:
                 text = "Wrong!";
@@ -253,30 +253,30 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_close_path(ctx);
         }
 
-        if (layout_string != NULL) {
+        if (auth_state == STATE_AUTH_IDLE && unlock_state != STATE_NOTHING_TO_DELETE && layout_string != NULL) {
             cairo_text_extents_t extents;
             double x, y;
 
-            cairo_set_font_size(ctx, 14.0);
+            cairo_set_font_size(ctx, 18.0);
 
             cairo_text_extents(ctx, layout_string, &extents);
             x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
-            y = BUTTON_CENTER - ((extents.height / 2) + extents.y_bearing) - 28.0;
+            y = BUTTON_CENTER - ((extents.height / 2) + extents.y_bearing);
 
             cairo_move_to(ctx, x, y);
             cairo_show_text(ctx, layout_string);
             cairo_close_path(ctx);
         }
 
-        if (modifier_string != NULL) {
+        if (auth_state == STATE_AUTH_IDLE && unlock_state != STATE_NOTHING_TO_DELETE && modifier_string != NULL) {
             cairo_text_extents_t extents;
             double x, y;
 
-            cairo_set_font_size(ctx, 14.0);
+            cairo_set_font_size(ctx, 18.0);
 
             cairo_text_extents(ctx, modifier_string, &extents);
             x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
-            y = BUTTON_CENTER - ((extents.height / 2) + extents.y_bearing) + 28.0;
+            y = BUTTON_CENTER - ((extents.height / 2) + extents.y_bearing) + 32.0;
 
             cairo_move_to(ctx, x, y);
             cairo_show_text(ctx, modifier_string);
@@ -298,10 +298,10 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                       highlight_start + (M_PI / 3.0));
             if (unlock_state == STATE_KEY_ACTIVE) {
                 /* For normal keys, we use a lighter green. */
-                cairo_set_source_rgb(ctx, 51.0 / 255, 219.0 / 255, 0);
+                cairo_set_source_rgb(ctx, 133.0 / 255, 153.0 / 255, 0);
             } else {
                 /* For backspace, we use red. */
-                cairo_set_source_rgb(ctx, 219.0 / 255, 51.0 / 255, 0);
+                cairo_set_source_rgb(ctx, 220.0 / 255, 50.0 / 255, 47 / 255);
             }
             cairo_stroke(ctx);
 
